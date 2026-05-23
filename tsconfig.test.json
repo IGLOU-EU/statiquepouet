@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "build-test",
+    "rootDir": ".",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "verbatimModuleSyntax": false
+  },
+  "include": ["src/**/*.ts", "tests/**/*.ts"]
+}

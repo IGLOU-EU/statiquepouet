@@ -1,0 +1,29 @@
+{
+  "name": "statique-pouet",
+  "version": "0.2.0",
+  "description": "Fediverse comments for static sites — TypeScript, modular, minified ESM build.",
+  "type": "module",
+  "license": "Unlicense",
+  "private": true,
+  "scripts": {
+    "build": "npm run build:js && npm run build:styles",
+    "build:js": "esbuild src/index.ts --bundle --minify --format=esm --target=es2020 --outfile=dist/comments.min.js --legal-comments=none",
+    "build:dev": "esbuild src/index.ts --bundle --format=esm --target=es2020 --outfile=dist/comments.js --sourcemap",
+    "build:styles": "npm run build:styles:light && npm run build:styles:dark",
+    "build:styles:light": "sass --no-source-map --style=compressed styles/statique-pouet-light.scss dist/statique-pouet-light.min.css",
+    "build:styles:dark": "sass --no-source-map --style=compressed styles/statique-pouet-dark.scss dist/statique-pouet-dark.min.css",
+    "build:tests": "tsc -p tsconfig.test.json",
+    "test": "npm run build:tests && node --test build-test/tests/",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist build-test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "esbuild": "^0.24.0",
+    "sass": "^1.99.0",
+    "typescript": "^5.4.0"
+  }
+}
