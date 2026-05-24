@@ -1,0 +1,19 @@
+{
+  "loading": "Loading comments…",
+  "noComments": "No comments yet. Be the first!",
+  "errorMissingMeta": "This page does not declare a Mastodon toot (missing meta tag).",
+  "errorInvalidMeta": "The declared toot is malformed (expected: @user@instance.tld/statusId).",
+  "errorNetwork": "Unable to reach the Mastodon instance.",
+  "errorNotFound": "The original toot was not found (deleted or private).",
+  "errorInstanceUnreachable": "Could not reach {instance}. Check the spelling, or that the server is currently online.",
+  "errorInstanceUnsupported": "{instance} is not a supported fediverse microblogging server, or blocks cross-origin requests from this site.",
+  "viewOriginal": "View original post",
+  "replyAction": "Reply",
+  "instanceModalTitle": "Which fediverse instance are you on?",
+  "instanceModalDescription": "Enter your instance domain (e.g. mastodon.social). You will be redirected to your instance to finalise.",
+  "instanceLabel": "Instance",
+  "instancePlaceholder": "mastodon.social",
+  "instanceSubmit": "Continue",
+  "instanceCancel": "Cancel",
+  "instanceInvalid": "Invalid domain."
+}
