@@ -1,0 +1,6 @@
+// Light theme entry. Loads vars (light defaults), emits :root, loads base rules.
+
+@use 'theme-light';
+@use 'base';
+
+@include theme-light.emit();

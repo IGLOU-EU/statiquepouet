@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>statique-pouet — demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!--
+    Link this page to a fediverse post (Mastodon, Pleroma/Akkoma,
+    GoToSocial, Pixelfed…). Paste the post URL exactly as shown in
+    the browser address bar. The script infers the instance to query
+    and the status ID.
+  -->
+  <meta name="fediverse-context"
+        content="https://mastodon.social/@Mastodon/116489457177711947">
+
+  <!-- Bundled light theme. Drives the statique-pouet-* selectors. -->
+  <link rel="stylesheet" href="../dist/statique-pouet-light.min.css">
+
+  <!-- Page chrome. Independent from the library theme. -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      max-width: 55rem;
+      margin: 2rem auto;
+      padding: 0 1.5rem 4rem;
+      font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: #1a1a1a;
+      background: #fafafa;
+    }
+    h1 { font-size: 1.75rem; margin: 0 0 0.5em; }
+    hr { border: 0; border-top: 1px solid #e0e0e0; margin: 1.5rem 0; }
+    code {
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.9em;
+      background: rgba(0, 0, 0, 0.05);
+      padding: 0.1em 0.3em;
+      border-radius: 3px;
+    }
+    .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    small { color: #666; }
+  </style>
+</head>
+<body>
+
+  <h1>statique-pouet demo</h1>
+
+  <p>
+    This page demonstrates fediverse-based comments on a static site.
+    <strong>No script is loaded until you click a button.</strong>
+  </p>
+
+  <p>
+    The page declares an anchor post in its <code>&lt;head&gt;</code> via
+    <code>&lt;meta name="fediverse-context"&gt;</code>. The buttons below
+    are plain HTML. Their <code>onclick</code> calls the small
+    <code>statiquePouet(action)</code> function defined inline at the foot
+    of the document.
+  </p>
+
+  <hr>
+
+  <!-- Plain HTML buttons styled via the bundled theme. -->
+  <div class="actions">
+    <button type="button"
+            class="statique-pouet-button statique-pouet-button-load"
+            onclick="statiquePouet('loadComments')">Load comments</button>
+    <button type="button"
+            class="statique-pouet-button statique-pouet-button-reply"
+            onclick="statiquePouet('postComment')">Reply</button>
+    <button type="button"
+            class="statique-pouet-button statique-pouet-button-share"
+            onclick="statiquePouet('shareArticle')">Share</button>
+  </div>
+
+  <!-- Comments container. -->
+  <div id="comments-content"></div>
+
+  <hr>
+
+  <p>
+    <small>
+      To serve this demo, from the project root run
+      <code>make serve</code> (or <code>python3 -m http.server</code>),
+      then open
+      <a href="http://localhost:8000/demo/index.html">localhost:8000/demo/index.html</a>.
+      <code>file://</code> URLs do not work (CORS).
+    </small>
+  </p>
+
+  <!--
+    Inline mini-loader. Four useful lines. Loads the minified bundle
+    on first click, then forwards the action. No file is downloaded
+    until the user clicks a button.
+  -->
+  <script>
+    window.STATIQUE_POUET_CONFIG = {
+      commentsContainerId: 'comments-content',
+      lang: 'en',
+      basePath: '../',
+    };
+    window.statiquePouet = function (action) {
+      return (window._sp ||= import(STATIQUE_POUET_CONFIG.basePath + 'dist/comments.min.js'))
+        .then(function (m) { return m[action](); });
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,360 @@
+// Statique-pouet default stylesheet.
+//
+// Rules target only the public selector contract documented in
+// `src/classes.ts`. Values come from CSS custom properties emitted
+// by `_vars.scss`, overridable at cascade time without recompilation.
+//
+// Accessibility:
+//   . Focus indication via `:focus-visible` (WCAG 2.4.11).
+//   . Primary buttons and the modal input meet 44x44 (WCAG 2.5.5 AAA).
+//     Inline actions (Reply, View) opt out and rely on padding + font.
+//   . `prefers-reduced-motion` and `forced-colors` queries at the foot.
+//   . Body text >=4.5:1, UI elements >=3:1 (contrast notes in `_vars.scss`).
+//
+// Responsive: intrinsic sizing, no viewport breakpoints. The only
+// @media queries here read USER preferences.
+
+%sp-focus-ring {
+  &:focus-visible {
+    outline: var(--sp-focus-ring-width) solid var(--sp-color-focus-ring);
+    outline-offset: var(--sp-focus-ring-offset);
+    border-radius: var(--sp-radius);
+  }
+}
+
+// Shared button behaviour. Visual chrome is set by the caller.
+// `:active` darkens via `filter: brightness()` with no transition so
+// the press feedback snaps instantly.
+%sp-button-base {
+  cursor: pointer;
+  font: inherit;
+  transition:
+    background-color var(--sp-transition),
+    border-color var(--sp-transition);
+
+  &:active:not(:disabled) {
+    filter: brightness(0.75);
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  @extend %sp-focus-ring;
+}
+
+// Primary buttons (modal Cancel / Submit). 44x44 hit target.
+@mixin sp-button-primary-base {
+  @extend %sp-button-base;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--sp-hit-target);
+  padding: var(--sp-space-sm) var(--sp-space-md);
+  border: 1px solid var(--sp-color-button-border);
+  border-radius: var(--sp-radius);
+  background: var(--sp-color-button-bg);
+  color: var(--sp-color-button-text);
+
+  &:hover { background: var(--sp-color-button-hover-bg); }
+}
+
+// Author-facing button classes. Opt-in helpers for the host page to
+// style its own page-level triggers (loadComments / shareArticle /
+// postComment) with a matching look and icon prefix.
+//
+//   <button class="statique-pouet-button statique-pouet-button-share">Share</button>
+
+.statique-pouet-button {
+  @extend %sp-button-base;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-space-sm);
+  min-height: var(--sp-hit-target);
+  padding: var(--sp-space-sm) var(--sp-space-md);
+  border: 1px solid var(--sp-color-button-border);
+  border-radius: var(--sp-radius);
+  background: var(--sp-color-button-bg);
+  color: var(--sp-color-button-text);
+
+  &:hover { background: var(--sp-color-button-hover-bg); }
+}
+
+// Type modifiers. Stand-alone (no `.statique-pouet-button` required)
+// so the icon can be reused elsewhere. Glyph from a CSS variable,
+// hardcoded fallback as a safety net.
+.statique-pouet-button-load::before  { content: var(--sp-icon-load,  '\27F3'); }
+.statique-pouet-button-share::before { content: var(--sp-icon-share, '\2197'); }
+.statique-pouet-button-reply::before { content: var(--sp-icon-reply, '\21A9'); }
+
+// Alerts: loading / empty / error. Left-accent border, no full box.
+
+.statique-pouet-alert {
+  margin: var(--sp-space-md) 0;
+  padding: var(--sp-space-sm) var(--sp-space-md);
+  border-left: 4px solid transparent;
+  border-radius: var(--sp-radius);
+  line-height: var(--sp-line-height);
+
+  &-info {
+    background: var(--sp-color-info-bg);
+    color: var(--sp-color-info-text);
+    border-left-color: var(--sp-color-info-border);
+  }
+  &-error {
+    background: var(--sp-color-error-bg);
+    color: var(--sp-color-error-text);
+    border-left-color: var(--sp-color-error-border);
+  }
+}
+
+// Loading indicator. Composing `rotate(θ) translateY(-r)` orbits the
+// glyph clockwise around its natural position. Linear easing for
+// constant angular speed. Reduced under `prefers-reduced-motion`.
+.statique-pouet-loading {
+  &::before {
+    content: '•';
+    display: inline-block;
+    margin-right: var(--sp-space-sm);
+    font-weight: bold;
+    line-height: 1;
+    animation: sp-loading-bob 1.1s linear infinite;
+  }
+}
+
+@keyframes sp-loading-bob {
+  from { transform: rotate(0deg)   translateY(-0.25em); }
+  to   { transform: rotate(360deg) translateY(-0.25em); }
+}
+
+// Comments tree.
+
+.statique-pouet-comments-list {
+  display: flex;
+  flex-direction: column;
+  color: var(--sp-color-text);
+  line-height: var(--sp-line-height);
+}
+
+.statique-pouet-comment {
+  background: var(--sp-color-surface);
+  padding: var(--sp-space-md) 0;
+  border-bottom: 1px solid var(--sp-color-border);
+
+  &:last-child { border-bottom: none; }
+
+  &-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--sp-space-sm);
+    margin-bottom: var(--sp-space-sm);
+  }
+
+  &-replies {
+    margin-top: var(--sp-space-md);
+    padding-left: var(--sp-reply-indent);
+    border-left: var(--sp-reply-border-width) solid var(--sp-color-thread-line);
+  }
+}
+
+.statique-pouet-avatar {
+  width: var(--sp-avatar-size);
+  height: var(--sp-avatar-size);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.statique-pouet-author {
+  font-weight: 600;
+
+  &-link {
+    color: var(--sp-color-link);
+    text-decoration: none;
+    @extend %sp-focus-ring;
+
+    &:hover {
+      color: var(--sp-color-link-hover);
+      text-decoration: underline;
+    }
+  }
+}
+
+.statique-pouet-handle {
+  color: var(--sp-color-text-muted);
+  font-size: var(--sp-font-size-sm);
+}
+
+.statique-pouet-date {
+  margin-left: auto;
+  color: var(--sp-color-text-muted);
+  font-size: var(--sp-font-size-sm);
+}
+
+.statique-pouet-content {
+  margin: var(--sp-space-sm) 0;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+
+  p {
+    margin: 0 0 var(--sp-space-sm);
+    &:last-child { margin-bottom: 0; }
+  }
+
+  a {
+    color: var(--sp-color-link);
+    @extend %sp-focus-ring;
+    &:hover { color: var(--sp-color-link-hover); }
+  }
+
+  code {
+    padding: 0 0.25em;
+    font-family: var(--sp-font-mono);
+    font-size: 0.95em;
+    background: var(--sp-color-code-bg);
+    border-radius: var(--sp-radius);
+  }
+}
+
+// Reply button: compact pill. Hit area from padding + font, well
+// above WCAG AA 24x24. View-original is a plain link.
+
+.statique-pouet-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-space-sm);
+  align-items: center;
+  margin-top: var(--sp-space-sm);
+}
+
+.statique-pouet-action {
+  &-reply {
+    @extend %sp-button-base;
+    display: inline-flex;
+    align-items: center;
+    padding: var(--sp-space-xs) var(--sp-space-md);
+    border: 1px solid var(--sp-color-border);
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    font-size: var(--sp-font-size-sm);
+
+    &:hover {
+      background: var(--sp-color-button-hover-bg);
+      border-color: var(--sp-color-link);
+    }
+  }
+
+  &-view {
+    color: var(--sp-color-link);
+    text-decoration: none;
+    font-size: var(--sp-font-size-sm);
+    @extend %sp-focus-ring;
+
+    &:hover {
+      color: var(--sp-color-link-hover);
+      text-decoration: underline;
+    }
+  }
+}
+
+// Modal. Singleton, so targeted via id. UA `<dialog>` defaults are
+// reset where they would compound with `.modal-content` padding.
+
+#statique-pouet-modal {
+  border: none;
+  padding: 0;
+
+  // Cap at --sp-modal-max-width, shrink to 90vw on narrow viewports.
+  // The UA `<dialog>` rules already keep it inside the viewport.
+  width: min(90vw, var(--sp-modal-max-width));
+
+  background: var(--sp-color-modal-bg);
+  color: var(--sp-color-text);
+  border-radius: var(--sp-radius);
+  box-shadow: var(--sp-color-modal-shadow);
+
+  &::backdrop {
+    background: var(--sp-color-backdrop);
+  }
+}
+
+.statique-pouet-modal-content {
+  padding: var(--sp-modal-padding);
+}
+
+.statique-pouet-modal-title {
+  margin: 0 0 var(--sp-space-sm);
+  font-size: 1.25rem;
+  line-height: 1.3;
+}
+
+.statique-pouet-modal-description {
+  margin: 0 0 var(--sp-space-md);
+  color: var(--sp-color-text-muted);
+}
+
+.statique-pouet-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-space-sm);
+}
+
+.statique-pouet-modal-label {
+  font-weight: 600;
+}
+
+#statique-pouet-modal-input {
+  width: 100%;
+  min-height: var(--sp-hit-target);
+  padding: var(--sp-space-sm) var(--sp-space-md);
+  border: 1px solid var(--sp-color-border);
+  border-radius: var(--sp-radius);
+  background: var(--sp-color-modal-bg);
+  color: var(--sp-color-text);
+  font: inherit;
+  @extend %sp-focus-ring;
+}
+
+.statique-pouet-modal-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--sp-space-sm);
+  margin-top: var(--sp-space-md);
+}
+
+.statique-pouet-modal-cancel {
+  @include sp-button-primary-base;
+}
+
+.statique-pouet-modal-submit {
+  @include sp-button-primary-base;
+  background: var(--sp-color-button-primary-bg);
+  color: var(--sp-color-button-primary-text);
+  border-color: transparent;
+
+  &:hover { background: var(--sp-color-button-primary-hover-bg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .statique-pouet-comments-list,
+  .statique-pouet-comments-list *,
+  #statique-pouet-modal,
+  #statique-pouet-modal * {
+    transition-duration: 0.001ms !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+// Windows High Contrast. Anchors structural boundaries on system colours.
+@media (forced-colors: active) {
+  .statique-pouet-comment { border-bottom-color: CanvasText; }
+  .statique-pouet-comment-replies { border-left-color: CanvasText; }
+  .statique-pouet-alert { border-left-color: CanvasText; }
+  #statique-pouet-modal { border: 1px solid CanvasText; }
+  #statique-pouet-modal-input { border-color: CanvasText; }
+
+  *:focus-visible { outline-color: Highlight; }
+}

@@ -1,0 +1,157 @@
+// Single source of truth for every SCSS variable and the `emit()`
+// mixin that writes them to `:root` as CSS custom properties.
+//
+// Defaults match the light theme. `_theme-dark.scss` overrides the
+// colour subset via `@forward 'vars' with (...)`. Downstream users
+// can do the same on any subset before the module loads.
+
+// Colour ====================================================================
+
+// Text. Contrast ratios noted against the bundled background.
+$sp-color-text:                    #1a1a1a !default;   // 16.9 on #fff
+$sp-color-text-muted:              #5b6066 !default;   //  7.0 on #fff
+$sp-color-link:                    #0750c4 !default;   //  7.4 on #fff
+$sp-color-link-hover:              #053a93 !default;
+
+// Surfaces. `surface` is transparent so the lib inherits the host bg.
+$sp-color-surface:                 transparent !default;
+$sp-color-border:                  #e0e0e0 !default;
+$sp-color-thread-line:             #d0d0d0 !default;
+
+// Focus ring (WCAG 2.4.11).
+$sp-color-focus-ring:              #0750c4 !default;
+
+// Alerts.
+$sp-color-error-text:              #8b0000 !default;
+$sp-color-error-bg:                #fdecec !default;
+$sp-color-error-border:            #f5b3b3 !default;
+$sp-color-info-text:               #1f4475 !default;
+$sp-color-info-bg:                 #e7f0fd !default;
+$sp-color-info-border:             #b7cef5 !default;
+
+// Buttons.
+$sp-color-button-bg:               transparent !default;
+$sp-color-button-text:             inherit !default;
+$sp-color-button-border:           currentColor !default;
+$sp-color-button-hover-bg:         rgba(0, 0, 0, 0.06) !default;
+$sp-color-button-primary-bg:       $sp-color-link !default;
+$sp-color-button-primary-text:     #ffffff !default;
+$sp-color-button-primary-hover-bg: $sp-color-link-hover !default;
+
+// Modal.
+$sp-color-modal-bg:                #ffffff !default;
+$sp-color-backdrop:                rgba(0, 0, 0, 0.5) !default;
+$sp-color-modal-shadow:            0 10px 40px rgba(0, 0, 0, 0.15) !default;
+
+// Code in comment content.
+$sp-color-code-bg:                 rgba(0, 0, 0, 0.05) !default;
+
+// Button icons. SCSS string values without surrounding quotes. The
+// `emit()` mixin wraps them in CSS quotes when writing the custom
+// property so `content: var(--sp-icon-*)` resolves directly.
+// Override at cascade time with any valid CSS `<content>` value
+// including `url()`, `counter()`, `attr()`.
+$sp-icon-load:                     '\27F3' !default;   // ⟳
+$sp-icon-share:                    '\2197' !default;   // ↗
+$sp-icon-reply:                    '\21A9' !default;   // ↩
+
+// Non-theme tokens (identical across light and dark builds) ================
+
+// Typography. The lib inherits the host font family otherwise.
+$sp-font-mono:                     ui-monospace, "SF Mono", Menlo, Consolas, monospace !default;
+$sp-font-size-sm:                  0.875rem !default;
+$sp-line-height:                   1.5 !default;
+
+// Spacing scale.
+$sp-space-xs:                      0.25rem !default;
+$sp-space-sm:                      0.5rem !default;
+$sp-space-md:                      1rem !default;
+$sp-space-lg:                      1.5rem !default;
+$sp-space-xl:                      2rem !default;
+
+// Geometry.
+$sp-radius:                        6px !default;
+$sp-avatar-size:                   40px !default;
+$sp-reply-indent:                  1.25rem !default;
+$sp-reply-border-width:            3px !default;
+
+// Modal.
+$sp-modal-max-width:               32rem !default;
+$sp-modal-padding:                 1.5rem !default;
+
+// Focus ring (WCAG 2.4.11).
+$sp-focus-ring-width:              2px !default;
+$sp-focus-ring-offset:             2px !default;
+
+// Hit target (WCAG 2.5.5 AAA). Applied to primary interactive
+// elements only. Inline actions (Reply, View) opt out.
+$sp-hit-target:                    44px !default;
+
+// Motion.
+$sp-transition:                    150ms ease !default;
+
+@mixin emit() {
+  :root {
+    --sp-color-text: #{$sp-color-text};
+    --sp-color-text-muted: #{$sp-color-text-muted};
+    --sp-color-link: #{$sp-color-link};
+    --sp-color-link-hover: #{$sp-color-link-hover};
+
+    --sp-color-surface: #{$sp-color-surface};
+    --sp-color-border: #{$sp-color-border};
+    --sp-color-thread-line: #{$sp-color-thread-line};
+
+    --sp-color-focus-ring: #{$sp-color-focus-ring};
+
+    --sp-color-error-text: #{$sp-color-error-text};
+    --sp-color-error-bg: #{$sp-color-error-bg};
+    --sp-color-error-border: #{$sp-color-error-border};
+    --sp-color-info-text: #{$sp-color-info-text};
+    --sp-color-info-bg: #{$sp-color-info-bg};
+    --sp-color-info-border: #{$sp-color-info-border};
+
+    --sp-color-button-bg: #{$sp-color-button-bg};
+    --sp-color-button-text: #{$sp-color-button-text};
+    --sp-color-button-border: #{$sp-color-button-border};
+    --sp-color-button-hover-bg: #{$sp-color-button-hover-bg};
+    --sp-color-button-primary-bg: #{$sp-color-button-primary-bg};
+    --sp-color-button-primary-text: #{$sp-color-button-primary-text};
+    --sp-color-button-primary-hover-bg: #{$sp-color-button-primary-hover-bg};
+
+    --sp-color-modal-bg: #{$sp-color-modal-bg};
+    --sp-color-backdrop: #{$sp-color-backdrop};
+    --sp-color-modal-shadow: #{$sp-color-modal-shadow};
+
+    --sp-color-code-bg: #{$sp-color-code-bg};
+
+    // Quoted so `content: var(--sp-icon-*)` is a valid `<content>` value.
+    --sp-icon-load: "#{$sp-icon-load}";
+    --sp-icon-share: "#{$sp-icon-share}";
+    --sp-icon-reply: "#{$sp-icon-reply}";
+
+    --sp-font-mono: #{$sp-font-mono};
+    --sp-font-size-sm: #{$sp-font-size-sm};
+    --sp-line-height: #{$sp-line-height};
+
+    --sp-space-xs: #{$sp-space-xs};
+    --sp-space-sm: #{$sp-space-sm};
+    --sp-space-md: #{$sp-space-md};
+    --sp-space-lg: #{$sp-space-lg};
+    --sp-space-xl: #{$sp-space-xl};
+
+    --sp-radius: #{$sp-radius};
+    --sp-avatar-size: #{$sp-avatar-size};
+    --sp-reply-indent: #{$sp-reply-indent};
+    --sp-reply-border-width: #{$sp-reply-border-width};
+
+    --sp-modal-max-width: #{$sp-modal-max-width};
+    --sp-modal-padding: #{$sp-modal-padding};
+
+    --sp-focus-ring-width: #{$sp-focus-ring-width};
+    --sp-focus-ring-offset: #{$sp-focus-ring-offset};
+
+    --sp-hit-target: #{$sp-hit-target};
+
+    --sp-transition: #{$sp-transition};
+  }
+}

@@ -1,0 +1,4 @@
+// Light theme. The defaults in `_vars.scss` are already the light
+// values, so this file just re-exports for symmetry with `_theme-dark`.
+
+@forward 'vars';

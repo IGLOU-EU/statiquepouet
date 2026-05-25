@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>statique-pouet — component showcase</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!--
+    Slot for the optional bundled theme (light or dark). The
+    `disabled` attribute keeps it inert at load time — the bottom-right
+    theme switcher swaps the href / removes the disable when needed.
+  -->
+  <link rel="stylesheet" id="sp-theme-link" disabled>
+
+  <style>
+    /* ====================================================================
+       Page chrome — only for the showcase document itself.
+       Not part of statique-pouet; you can delete this whole block when
+       you fork this file as a starting point for your own theme.
+       ==================================================================== */
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      max-width: 56rem;
+      margin: 2rem auto;
+      padding: 0 1.5rem 4rem;
+      font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: #1a1a1a;
+      background: #fafafa;
+    }
+    h1 { font-size: 1.75rem; margin: 0 0 0.25em; }
+    h2 {
+      font-size: 1.25rem;
+      margin-top: 2.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e0e0e0;
+    }
+    h2 a, h3 a { color: inherit; text-decoration: none; }
+    h2 a:hover::after { content: ' #'; color: #888; }
+    p.lede { color: #555; margin-top: 0; }
+    code, pre { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+    code { background: #efefef; padding: 0.1em 0.3em; border-radius: 3px; font-size: 0.9em; }
+    pre {
+      background: #1e1e1e; color: #e8e8e8;
+      padding: 1em;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 0.85em;
+      line-height: 1.5;
+    }
+    pre code { background: transparent; padding: 0; color: inherit; }
+    /* Highlight selector tokens inside <code> and <pre>. Uses a tinted
+       background instead of a foreground colour so it stays legible in
+       both light contexts (inline <code> on #efefef) and dark contexts
+       (inside <pre> on #1e1e1e). */
+    .lib-class {
+      background: rgba(255, 213, 79, 0.22);
+      color: inherit;
+      border-radius: 2px;
+      padding: 0 0.15em;
+    }
+    pre .lib-class { background: rgba(255, 213, 79, 0.30); }
+    .preview {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 1.5em;
+      margin: 0.75em 0 0.5em;
+    }
+    /* The modal preview embeds the <dialog> inline via the `open`
+       attribute (instead of showModal()) so it sits in the document
+       flow. The UA stylesheet defaults <dialog[open]> to
+       position: absolute, which would take it out of flow and stop
+       .preview from sizing to its content. Forcing position: static
+       puts the dialog back in normal flow so .preview grows around
+       it. Page chrome only — not part of the library. */
+    .preview dialog[open] { position: static; }
+    .preview-label, .source-label {
+      display: inline-block;
+      font-size: 0.7em;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #888;
+      margin-bottom: 0.4em;
+    }
+    .toc {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 1em 1.5em;
+      margin: 1.5em 0;
+    }
+    .toc ul { margin: 0; padding-left: 1.2em; }
+    .toc li { margin: 0.15em 0; }
+    .note {
+      background: #fff8d4;
+      border-left: 3px solid #d4a700;
+      padding: 0.75em 1em;
+      margin: 1em 0;
+      font-size: 0.92em;
+    }
+    .note code { background: #fff; border: 1px solid #e0c560; }
+
+    /* --------------------------------------------------------------
+       Theme switcher (showcase chrome, not part of the library).
+       Lets the visitor swap between "no theme" (raw browser
+       defaults), bundled light theme, and bundled dark theme.
+       -------------------------------------------------------------- */
+    .theme-switcher {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      display: flex;
+      gap: 0.2rem;
+      padding: 0.2rem;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+      z-index: 1000;
+      font-size: 0.85em;
+    }
+    .theme-switcher button {
+      padding: 0.4em 0.75em;
+      background: transparent;
+      border: 0;
+      border-radius: 6px;
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+    }
+    .theme-switcher button:hover { background: rgba(0, 0, 0, 0.06); }
+    .theme-switcher button:focus-visible {
+      outline: 2px solid #0750c4;
+      outline-offset: 1px;
+    }
+    .theme-switcher button[aria-pressed="true"] {
+      background: #1a1a1a;
+      color: #fff;
+    }
+
+    /* --------------------------------------------------------------
+       Dark variant of the page chrome — only applied when the user
+       picks the dark theme in the switcher. The library's own dark
+       theme styles the .statique-pouet-* selectors; these rules
+       cover the showcase chrome around them so the page doesn't
+       look broken (light bg + dark lib elements).
+       -------------------------------------------------------------- */
+    :root[data-sp-theme="dark"] body {
+      background: #16181a;
+      color: #e8e8e8;
+    }
+    :root[data-sp-theme="dark"] h2 { border-top-color: #2d3138; }
+    :root[data-sp-theme="dark"] h2 a:hover::after { color: #a0a4a8; }
+    :root[data-sp-theme="dark"] p.lede { color: #a0a4a8; }
+    :root[data-sp-theme="dark"] code { background: #2d3138; color: #e8e8e8; }
+    :root[data-sp-theme="dark"] .preview {
+      background: #1d2125;
+      border-color: #2d3138;
+    }
+    :root[data-sp-theme="dark"] .preview-label,
+    :root[data-sp-theme="dark"] .source-label { color: #a0a4a8; }
+    :root[data-sp-theme="dark"] .toc {
+      background: #1d2125;
+      border-color: #2d3138;
+    }
+    :root[data-sp-theme="dark"] .note {
+      background: #2a2615;
+      border-left-color: #d4a700;
+      color: #e8e8e8;
+    }
+    :root[data-sp-theme="dark"] .note code {
+      background: #3a3414;
+      border-color: #5a4d20;
+      color: #e8e8e8;
+    }
+    :root[data-sp-theme="dark"] .theme-switcher {
+      background: rgba(29, 33, 37, 0.96);
+      border-color: #2d3138;
+      color: #e8e8e8;
+    }
+    :root[data-sp-theme="dark"] .theme-switcher button:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+    :root[data-sp-theme="dark"] .theme-switcher button[aria-pressed="true"] {
+      background: #e8e8e8;
+      color: #1a1a1a;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>statique-pouet — component showcase</h1>
+  <p class="lede">
+    Every selector emitted by the library, rendered live alongside the
+    HTML the rendering layer actually produces. <strong>The library
+    ships zero CSS</strong> — every visual choice is up to the host
+    page. Two paths from here:
+  </p>
+  <ul>
+    <li><strong>Author your own theme.</strong> Fork this file, delete
+      the page chrome at the top of the embedded stylesheet, then style
+      the <code>statique-pouet-*</code> selectors however you want.</li>
+    <li><strong>Opt into one of the bundled themes.</strong> Add
+      <code>&lt;link rel="stylesheet" href="…/dist/statique-pouet-light.min.css"&gt;</code>
+      (or <code>-dark</code>) and you're done. Both themes are
+      driven by <code>--sp-*</code> CSS custom properties so any value
+      stays overridable with one extra rule in your own stylesheet
+      (no <code>!important</code>, no specificity battle).</li>
+  </ul>
+  <p class="note">
+    <strong>Try the themes right here.</strong> Use the switcher in
+    the bottom-right of this page to toggle between no theme (raw
+    browser defaults), the bundled light theme, and the bundled dark
+    theme. Your choice is persisted in <code>localStorage</code>.
+  </p>
+
+  <nav class="toc">
+    <strong>On this page</strong>
+    <ul>
+      <li><a href="#author-buttons">Author-controlled buttons</a></li>
+      <li><a href="#alerts">Alerts (loading, empty, error)</a></li>
+      <li><a href="#single-comment">Single comment</a></li>
+      <li><a href="#nested-thread">Nested thread (comments list + replies)</a></li>
+      <li><a href="#modal">Instance modal (with native datalist autocomplete)</a></li>
+    </ul>
+  </nav>
+
+  <p class="note">
+    <strong>Convention.</strong> Every selector starts with
+    <code>statique-pouet-</code>. The library never adds any other
+    style hook. IDs are used for single-instance elements
+    (<code>#statique-pouet-modal</code>,
+    <code>#statique-pouet-modal-input</code>); everything else is a
+    class.
+  </p>
+
+  <!-- ====================================================================
+       Author-controlled buttons
+       ==================================================================== -->
+  <h2 id="author-buttons"><a href="#author-buttons">Author-controlled buttons</a></h2>
+  <p>
+    The library does not render these — they live in your HTML, with
+    your own classes. You can leave them un-styled (the lib doesn't
+    require any class) or opt into the theme's ready-to-use
+    <code class="lib-class">statique-pouet-button</code> base plus a
+    type modifier:
+  </p>
+  <ul>
+    <li><code class="lib-class">statique-pouet-button-load</code> — prefixes a
+      <code>⟳</code> glyph (load / fetch).</li>
+    <li><code class="lib-class">statique-pouet-button-share</code> — prefixes a
+      <code>↗</code> glyph (outbound / share).</li>
+    <li><code class="lib-class">statique-pouet-button-reply</code> — prefixes a
+      <code>↩</code> glyph (reply).</li>
+  </ul>
+  <p>
+    Glyphs are single-codepoint UTF-8 characters injected via
+    <code>::before</code> — no emoji, no SVG, no icon font, no extra
+    HTTP request. They inherit the button's font size and colour.
+  </p>
+  <span class="preview-label">Preview</span>
+  <div class="preview">
+    <button type="button" class="statique-pouet-button statique-pouet-button-load">Load comments</button>
+    <button type="button" class="statique-pouet-button statique-pouet-button-reply">Reply</button>
+    <button type="button" class="statique-pouet-button statique-pouet-button-share">Share</button>
+  </div>
+  <span class="source-label">Source</span>
+<pre><code>&lt;button type="button" class="<span class="lib-class">statique-pouet-button statique-pouet-button-load</span>"
+        onclick="statiquePouet('loadComments')"&gt;Load comments&lt;/button&gt;
+&lt;button type="button" class="<span class="lib-class">statique-pouet-button statique-pouet-button-reply</span>"
+        onclick="statiquePouet('postComment')"&gt;Reply&lt;/button&gt;
+&lt;button type="button" class="<span class="lib-class">statique-pouet-button statique-pouet-button-share</span>"
+        onclick="statiquePouet('shareArticle')"&gt;Share&lt;/button&gt;</code></pre>
+  <p class="note">
+    The classes only have an effect once one of the bundled themes
+    is loaded (try the switcher in the bottom-right). Without a
+    theme, the buttons fall back to your browser's default
+    <code>&lt;button&gt;</code> chrome — the lib still works
+    perfectly, it just doesn't repaint the controls.
+  </p>
+
+
+  <!-- ====================================================================
+       Alerts
+       ==================================================================== -->
+  <h2 id="alerts"><a href="#alerts">Alerts</a></h2>
+  <p>
+    Three states, identical structure. Each <code>&lt;p&gt;</code>
+    receives three classes: the common base
+    <code class="lib-class">statique-pouet-alert</code>, a type variant
+    (<code class="lib-class">…-alert-info</code> or
+    <code class="lib-class">…-alert-error</code>), and the semantic
+    class for fine-grained targeting
+    (<code class="lib-class">…-loading</code>,
+    <code class="lib-class">…-empty</code>,
+    <code class="lib-class">…-error</code>).
+  </p>
+
+  <h3>Loading indicator</h3>
+  <span class="preview-label">Preview</span>
+  <div class="preview">
+    <p class="statique-pouet-alert statique-pouet-alert-info statique-pouet-loading">Loading comments…</p>
+  </div>
+  <span class="source-label">Source</span>
+<pre><code>&lt;p class="<span class="lib-class">statique-pouet-alert statique-pouet-alert-info statique-pouet-loading</span>"&gt;
+  Loading comments…
+&lt;/p&gt;</code></pre>
+
+  <h3>Empty thread</h3>
+  <span class="preview-label">Preview</span>
+  <div class="preview">
+    <p class="statique-pouet-alert statique-pouet-alert-info statique-pouet-empty">No comments yet. Be the first!</p>
+  </div>
+  <span class="source-label">Source</span>
+<pre><code>&lt;p class="<span class="lib-class">statique-pouet-alert statique-pouet-alert-info statique-pouet-empty</span>"&gt;
+  No comments yet. Be the first!
+&lt;/p&gt;</code></pre>
+
+  <h3>Error</h3>
+  <span class="preview-label">Preview</span>
+  <div class="preview">
+    <p class="statique-pouet-alert statique-pouet-alert-error statique-pouet-error">Unable to reach the Mastodon instance.</p>
+  </div>
+  <span class="source-label">Source</span>
+<pre><code>&lt;p class="<span class="lib-class">statique-pouet-alert statique-pouet-alert-error statique-pouet-error</span>"&gt;
+  Unable to reach the Mastodon instance.
+&lt;/p&gt;</code></pre>
+
+
+  <!-- ====================================================================
+       Single comment
+       ==================================================================== -->
+  <h2 id="single-comment"><a href="#single-comment">Single comment</a></h2>
+  <p>
+    The atomic unit. An <code>&lt;article&gt;</code> with header,
+    content and actions sub-blocks. The <code>data-status-id</code>
+    attribute carries the source post ID for any author script that
+    wants to reach for it.
+  </p>
+  <span class="preview-label">Preview</span>
+  <div class="preview">
+    <article class="statique-pouet-comment" data-status-id="116539053870420123">
+      <header class="statique-pouet-comment-header">
+        <img class="statique-pouet-avatar" width="32" height="32" alt=""
+             src="data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'&gt;&lt;rect width='32' height='32' fill='%237aa8d4'/&gt;&lt;text x='16' y='21' text-anchor='middle' fill='white' font-family='sans-serif' font-size='14' font-weight='bold'&gt;A&lt;/text&gt;&lt;/svg&gt;">
+        <span class="statique-pouet-author">
+          <a class="statique-pouet-author-link" href="#" target="_blank" rel="noopener nofollow">Alice Ada</a>
+        </span>
+        <span class="statique-pouet-handle">@alice@mastodon.social</span>
+        <time class="statique-pouet-date" datetime="2026-05-24T08:30:00Z" title="2026-05-24 08:30">3 hours ago</time>
+      </header>
+      <div class="statique-pouet-content">
+        <p>Great article. The webfinger lookup is something I'd never have thought about before.</p>
+      </div>
+      <div class="statique-pouet-actions">
+        <button type="button" class="statique-pouet-action-reply">Reply</button>
+        <a class="statique-pouet-action-view" href="#" target="_blank" rel="noopener nofollow">View original post</a>
+      </div>
+    </article>
+  </div>
+  <span class="source-label">Source</span>
+<pre><code>&lt;article class="<span class="lib-class">statique-pouet-comment</span>" data-status-id="116539053870420123"&gt;
+  &lt;header class="<span class="lib-class">statique-pouet-comment-header</span>"&gt;
+    &lt;img class="<span class="lib-class">statique-pouet-avatar</span>" width="32" height="32" alt="" loading="lazy" src="…"&gt;
+    &lt;span class="<span class="lib-class">statique-pouet-author</span>"&gt;
+      &lt;a class="<span class="lib-class">statique-pouet-author-link</span>" href="…" target="_blank" rel="noopener nofollow"&gt;Alice Ada&lt;/a&gt;
+    &lt;/span&gt;
+    &lt;span class="<span class="lib-class">statique-pouet-handle</span>"&gt;@alice@mastodon.social&lt;/span&gt;
+    &lt;time class="<span class="lib-class">statique-pouet-date</span>" datetime="2026-05-24T08:30:00Z" title="2026-05-24 08:30"&gt;3 hours ago&lt;/time&gt;
+  &lt;/header&gt;
+  &lt;div class="<span class="lib-class">statique-pouet-content</span>"&gt;
+    &lt;p&gt;Great article. The webfinger lookup is something I'd never have thought about before.&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="<span class="lib-class">statique-pouet-actions</span>"&gt;
+    &lt;button type="button" class="<span class="lib-class">statique-pouet-action-reply</span>"&gt;Reply&lt;/button&gt;
+    &lt;a class="<span class="lib-class">statique-pouet-action-view</span>" href="…" target="_blank" rel="noopener nofollow"&gt;View original post&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/article&gt;</code></pre>
+
+  <p class="note">
+    The <code class="lib-class">statique-pouet-content</code> inner
+    HTML is sanitised by the library (allow-list:
+    <code>p, br, a, span, em, strong</code>; <code>href</code> only
+    allows <code>http(s):</code> / <code>/</code> / <code>#</code> /
+    <code>?</code>). Mastodon mentions (<code>span.h-card</code>) and
+    hashtags (<code>a.mention.hashtag</code>) pass through with their
+    classes preserved.
+  </p>
+
+
+  <!-- ====================================================================
+       Nested thread
+       ==================================================================== -->
+  <h2 id="nested-thread"><a href="#nested-thread">Nested thread</a></h2>
+  <p>
+    The whole comments tree lives inside a single
+    <code class="lib-class">statique-pouet-comments-list</code>
+    container. Each comment may carry a
+    <code class="lib-class">statique-pouet-comment-replies</code>
+    block holding further nested comments — there is no rendering-side
+    depth limit, the library recurses.
+  </p>
+  <span class="preview-label">Preview</span>
+  <div class="preview">
+    <div class="statique-pouet-comments-list">
+      <article class="statique-pouet-comment" data-status-id="1">
+        <header class="statique-pouet-comment-header">
+          <img class="statique-pouet-avatar" width="32" height="32" alt=""
+               src="data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'&gt;&lt;rect width='32' height='32' fill='%23d4906a'/&gt;&lt;text x='16' y='21' text-anchor='middle' fill='white' font-family='sans-serif' font-size='14' font-weight='bold'&gt;B&lt;/text&gt;&lt;/svg&gt;">
+          <span class="statique-pouet-author"><a class="statique-pouet-author-link" href="#">Bob Boole</a></span>
+          <span class="statique-pouet-handle">@bob@pleroma.example</span>
+          <time class="statique-pouet-date">1 day ago</time>
+        </header>
+        <div class="statique-pouet-content"><p>The Pleroma support is documented but I'm curious whether GoToSocial follows the same OStatus subscribe convention.</p></div>
+        <div class="statique-pouet-actions">
+          <button type="button" class="statique-pouet-action-reply">Reply</button>
+          <a class="statique-pouet-action-view" href="#">View original post</a>
+        </div>
+        <div class="statique-pouet-comment-replies">
+          <article class="statique-pouet-comment" data-status-id="2">
+            <header class="statique-pouet-comment-header">
+              <img class="statique-pouet-avatar" width="32" height="32" alt=""
+                   src="data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'&gt;&lt;rect width='32' height='32' fill='%237ac4a8'/&gt;&lt;text x='16' y='21' text-anchor='middle' fill='white' font-family='sans-serif' font-size='14' font-weight='bold'&gt;C&lt;/text&gt;&lt;/svg&gt;">
+              <span class="statique-pouet-author"><a class="statique-pouet-author-link" href="#">Carol Curie</a></span>
+              <span class="statique-pouet-handle">@carol@gts.example</span>
+              <time class="statique-pouet-date">14 hours ago</time>
+            </header>
+            <div class="statique-pouet-content"><p>GoToSocial doesn't publish webfinger templates at all in my experience — falls back to the hand-built <code>/authorize_interaction</code>.</p></div>
+            <div class="statique-pouet-actions">
+              <button type="button" class="statique-pouet-action-reply">Reply</button>
+              <a class="statique-pouet-action-view" href="#">View original post</a>
+            </div>
+            <div class="statique-pouet-comment-replies">
+              <article class="statique-pouet-comment" data-status-id="3">
+                <header class="statique-pouet-comment-header">
+                  <img class="statique-pouet-avatar" width="32" height="32" alt=""
+                       src="data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'&gt;&lt;rect width='32' height='32' fill='%23a07ad4'/&gt;&lt;text x='16' y='21' text-anchor='middle' fill='white' font-family='sans-serif' font-size='14' font-weight='bold'&gt;D&lt;/text&gt;&lt;/svg&gt;">
+                  <span class="statique-pouet-author"><a class="statique-pouet-author-link" href="#">Dave Dijkstra</a></span>
+                  <span class="statique-pouet-handle">@dave@akkoma.example</span>
+                  <time class="statique-pouet-date">3 hours ago</time>
+                </header>
+                <div class="statique-pouet-content"><p>Confirming: tested it last week. <code>/authorize_interaction</code> works fine on GTS as a GET.</p></div>
+                <div class="statique-pouet-actions">
+                  <button type="button" class="statique-pouet-action-reply">Reply</button>
+                  <a class="statique-pouet-action-view" href="#">View original post</a>
+                </div>
+              </article>
+            </div>
+          </article>
+        </div>
+      </article>
+    </div>
+  </div>
+  <span class="source-label">Source (collapsed)</span>
+<pre><code>&lt;div class="<span class="lib-class">statique-pouet-comments-list</span>"&gt;
+  &lt;article class="<span class="lib-class">statique-pouet-comment</span>" data-status-id="1"&gt;
+    … header / content / actions …
+    &lt;div class="<span class="lib-class">statique-pouet-comment-replies</span>"&gt;
+      &lt;article class="<span class="lib-class">statique-pouet-comment</span>" data-status-id="2"&gt;
+        … header / content / actions …
+        &lt;div class="<span class="lib-class">statique-pouet-comment-replies</span>"&gt;
+          &lt;article class="<span class="lib-class">statique-pouet-comment</span>" data-status-id="3"&gt;
+            …
+          &lt;/article&gt;
+        &lt;/div&gt;
+      &lt;/article&gt;
+    &lt;/div&gt;
+  &lt;/article&gt;
+&lt;/div&gt;</code></pre>
+
+
+  <!-- ====================================================================
+       Modal
+       ==================================================================== -->
+  <h2 id="modal"><a href="#modal">Instance modal</a></h2>
+  <p>
+    Rendered when the user clicks <em>Reply</em> or <em>Share</em>.
+    The modal is a native
+    <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/dialog"><code>&lt;dialog&gt;</code></a>
+    element opened via <code>dialog.showModal()</code>. The browser
+    handles focus trap, ESC-to-dismiss, <code>aria-modal</code>,
+    background <code>inert</code> and focus restoration on close — no
+    JS needed for any of those. The inner box is
+    <code class="lib-class">.statique-pouet-modal-content</code> and
+    the dim is the
+    <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/::backdrop"><code>::backdrop</code></a>
+    pseudo-element of the dialog (no element, no class).
+  </p>
+  <p class="note">
+    On this showcase the dialog is rendered <em>inline</em> via the
+    <code>open</code> attribute (non-modal display, in the document
+    flow). In production the library calls
+    <code>dialog.showModal()</code> instead, which centres the dialog
+    on a fullscreen dim <code>::backdrop</code> and arms the modal
+    behaviours listed above.
+  </p>
+  <span class="preview-label">Preview</span>
+  <div class="preview">
+    <dialog id="statique-pouet-modal" open>
+      <div class="statique-pouet-modal-content">
+        <h3 class="statique-pouet-modal-title">Which fediverse instance are you on?</h3>
+        <p class="statique-pouet-modal-description">Enter your instance domain (e.g. mastodon.social). You will be redirected to your instance to finalise.</p>
+        <form class="statique-pouet-modal-form" onsubmit="event.preventDefault()">
+          <label class="statique-pouet-modal-label" for="statique-pouet-modal-input">Instance</label>
+          <input id="statique-pouet-modal-input" list="statique-pouet-modal-suggestions" type="text" placeholder="mastodon.social" value="mast" autocomplete="off">
+          <datalist id="statique-pouet-modal-suggestions">
+            <option value="mastodon.social"></option>
+            <option value="mastodon.online"></option>
+            <option value="mastodon.world"></option>
+            <option value="mastodon.art"></option>
+          </datalist>
+          <p class="statique-pouet-alert statique-pouet-alert-error statique-pouet-error" hidden>Invalid domain.</p>
+          <div class="statique-pouet-modal-buttons">
+            <button type="button" class="statique-pouet-modal-cancel">Cancel</button>
+            <button type="submit" class="statique-pouet-modal-submit">Continue</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+  </div>
+  <p class="note">
+    The autocomplete dropdown is a native
+    <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/datalist"><code>&lt;datalist&gt;</code></a>
+    linked to the input via its <code>list</code> attribute. The browser
+    handles the popup, keyboard navigation, accessibility and match
+    highlighting. To see it, click into the input above and start
+    typing or use the arrow keys. The dropdown is not stylable beyond
+    what the browser allows — that's a deliberate trade for the
+    standard behaviour. Suggestions are populated dynamically as the
+    user types by appending <code>&lt;option&gt;</code> elements to the
+    datalist from the result of <code>/api/v1/peers/search</code>.
+  </p>
+  <span class="source-label">Source (production version uses <code>showModal()</code>; here <code>open</code> for inline preview)</span>
+<pre><code>&lt;dialog id="<span class="lib-class">statique-pouet-modal</span>"&gt;
+  &lt;div class="<span class="lib-class">statique-pouet-modal-content</span>"&gt;
+    &lt;h3 class="<span class="lib-class">statique-pouet-modal-title</span>"&gt;Which fediverse instance are you on?&lt;/h3&gt;
+    &lt;p class="<span class="lib-class">statique-pouet-modal-description</span>"&gt;Enter your instance domain…&lt;/p&gt;
+    &lt;form class="<span class="lib-class">statique-pouet-modal-form</span>"&gt;
+      &lt;label class="<span class="lib-class">statique-pouet-modal-label</span>" for="<span class="lib-class">statique-pouet-modal-input</span>"&gt;Instance&lt;/label&gt;
+      &lt;input id="<span class="lib-class">statique-pouet-modal-input</span>" list="<span class="lib-class">statique-pouet-modal-suggestions</span>" type="text" placeholder="mastodon.social"&gt;
+      &lt;datalist id="<span class="lib-class">statique-pouet-modal-suggestions</span>"&gt;
+        &lt;option value="mastodon.social"&gt;&lt;/option&gt;
+        &lt;option value="mastodon.online"&gt;&lt;/option&gt;
+        …
+      &lt;/datalist&gt;
+      &lt;p class="<span class="lib-class">statique-pouet-alert statique-pouet-alert-error statique-pouet-error</span>" hidden&gt;Invalid domain.&lt;/p&gt;
+      &lt;div class="<span class="lib-class">statique-pouet-modal-buttons</span>"&gt;
+        &lt;button type="button" class="<span class="lib-class">statique-pouet-modal-cancel</span>"&gt;Cancel&lt;/button&gt;
+        &lt;button type="submit" class="<span class="lib-class">statique-pouet-modal-submit</span>"&gt;Continue&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/form&gt;
+  &lt;/div&gt;
+&lt;/dialog&gt;</code></pre>
+
+
+  <h2 id="customise"><a href="#customise">Customising further</a></h2>
+  <p class="note">
+    Internal dynamic UI (the suggestions list, the inline error
+    paragraph) is toggled via the standard HTML
+    <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/hidden"><code>hidden</code> global attribute</a> — no
+    library-specific class is emitted for show/hide. If your stylesheet
+    sets <code>display: …</code> on the same elements, override with
+    <code>[hidden] { display: none }</code> if needed.
+  </p>
+  <ul>
+    <li>The whole selector contract is documented in
+      <a href="../src/classes.ts"><code>src/classes.ts</code></a>.
+      Any change there is a breaking change for downstream stylesheets.</li>
+    <li>The library injects no <code>&lt;style&gt;</code> or
+      <code>&lt;link&gt;</code> element and sets no inline
+      <code>style</code> attributes — every rule comes from your own
+      stylesheet, with no specificity battles to fight.</li>
+    <li>The two bundled themes
+      (<code>dist/statique-pouet-light.min.css</code>,
+      <code>dist/statique-pouet-dark.min.css</code>) expose roughly
+      40 <code>--sp-*</code> CSS custom properties on <code>:root</code>:
+      colours, spacing, typography, geometry, focus ring, motion.
+      Override any subset in your own stylesheet to retheme without
+      forking. SCSS sources in
+      <a href="../styles/"><code>styles/</code></a> if you want to
+      build a third theme from scratch.</li>
+    <li>The bundled themes also include scoped a11y guards:
+      <code>prefers-reduced-motion</code> disables transitions, and
+      <code>forced-colors: active</code> (Windows High Contrast) maps
+      structural boundaries to system colours so the layout survives
+      a forced palette.</li>
+  </ul>
+
+  <!--
+    Theme switcher. Fixed bottom-right of the viewport, lets visitors
+    try this showcase with no theme at all (raw browser defaults), the
+    bundled light theme, or the bundled dark theme. Pure HTML buttons
+    + ~15 lines of JS for the cascade swap and localStorage persistence.
+  -->
+  <div class="theme-switcher" role="group" aria-label="Showcase theme">
+    <button type="button" data-theme="none" aria-pressed="true">No theme</button>
+    <button type="button" data-theme="light" aria-pressed="false">Light</button>
+    <button type="button" data-theme="dark" aria-pressed="false">Dark</button>
+  </div>
+  <script>
+    (function () {
+      const STORAGE_KEY = 'sp-showcase-theme';
+      const link = document.getElementById('sp-theme-link');
+      const switcher = document.querySelector('.theme-switcher');
+
+      function apply(name) {
+        const value = name === 'light' || name === 'dark' ? name : 'none';
+        document.documentElement.dataset.spTheme = value;
+        for (const btn of switcher.querySelectorAll('button')) {
+          btn.setAttribute('aria-pressed', String(btn.dataset.theme === value));
+        }
+        if (value === 'none') {
+          link.disabled = true;
+          link.removeAttribute('href');
+        } else {
+          link.href = '../dist/statique-pouet-' + value + '.min.css';
+          link.disabled = false;
+        }
+        try { localStorage.setItem(STORAGE_KEY, value); } catch (_) { /* private mode etc. */ }
+      }
+
+      switcher.addEventListener('click', function (e) {
+        const btn = e.target.closest('button[data-theme]');
+        if (btn) apply(btn.dataset.theme);
+      });
+
+      let initial = null;
+      try { initial = localStorage.getItem(STORAGE_KEY); } catch (_) {}
+      apply(initial || 'none');
+    })();
+  </script>
+
+</body>
+</html>
