@@ -1,0 +1,6 @@
+// Dark theme entry. Loads vars with dark overrides, emits :root, loads base rules.
+
+@use 'theme-dark';
+@use 'base';
+
+@include theme-dark.emit();
