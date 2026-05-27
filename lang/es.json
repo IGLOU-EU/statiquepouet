@@ -1,0 +1,19 @@
+{
+  "loading": "Cargando comentarios…",
+  "noComments": "Aún no hay comentarios. ¡Sea el primero en comentar!",
+  "errorMissingMeta": "Esta página no declara ningún toot de Mastodon (falta la meta tag).",
+  "errorInvalidMeta": "El toot declarado no es válido (formato esperado: @user@instance.tld/statusId).",
+  "errorNetwork": "No se puede acceder a la instancia de Mastodon.",
+  "errorNotFound": "No se ha encontrado el toot original (eliminado o privado).",
+  "errorInstanceUnreachable": "No se ha podido acceder a {instance}. Compruebe la ortografía o que el servidor esté actualmente en línea.",
+  "errorInstanceUnsupported": "{instance} no es un servidor de microblogging del fediverse compatible, o bloquea las solicitudes cross-origin desde este sitio.",
+  "viewOriginal": "Ver la publicación original",
+  "replyAction": "Responder",
+  "instanceModalTitle": "¿En qué instancia del fediverse se encuentra?",
+  "instanceModalDescription": "Introduzca el dominio de su instancia (p. ej. mastodon.social). Será redirigido a su instancia para finalizar.",
+  "instanceLabel": "Instancia",
+  "instancePlaceholder": "mastodon.social",
+  "instanceSubmit": "Continuar",
+  "instanceCancel": "Cancelar",
+  "instanceInvalid": "Dominio no válido."
+}

@@ -1,0 +1,19 @@
+{
+  "loading": "Reacties worden geladen…",
+  "noComments": "Nog geen reacties. Plaats de eerste reactie!",
+  "errorMissingMeta": "Deze pagina verwijst niet naar een Mastodon-toot (meta tag ontbreekt).",
+  "errorInvalidMeta": "De opgegeven toot is ongeldig (verwacht formaat: @user@instance.tld/statusId).",
+  "errorNetwork": "De Mastodon-instantie is niet bereikbaar.",
+  "errorNotFound": "De oorspronkelijke toot is niet gevonden (verwijderd of privé).",
+  "errorInstanceUnreachable": "{instance} is niet bereikbaar. Controleer de spelling of dat de server momenteel online is.",
+  "errorInstanceUnsupported": "{instance} is geen ondersteunde microblogserver in het fediverse, of blokkeert cross-origin-verzoeken vanaf deze site.",
+  "viewOriginal": "Originele post bekijken",
+  "replyAction": "Beantwoorden",
+  "instanceModalTitle": "Op welke fediverse-instantie zit u?",
+  "instanceModalDescription": "Voer het domein van uw instantie in (bijv. mastodon.social). U wordt doorgestuurd naar uw instantie om af te ronden.",
+  "instanceLabel": "Instantie",
+  "instancePlaceholder": "mastodon.social",
+  "instanceSubmit": "Doorgaan",
+  "instanceCancel": "Annuleren",
+  "instanceInvalid": "Ongeldig domein."
+}

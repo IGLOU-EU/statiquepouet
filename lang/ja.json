@@ -1,0 +1,19 @@
+{
+  "loading": "コメントを読み込んでいます…",
+  "noComments": "まだコメントはありません。最初のコメントを投稿しましょう。",
+  "errorMissingMeta": "このページにはMastodonのトゥートが指定されていません（metaタグがありません）。",
+  "errorInvalidMeta": "指定されたトゥートの形式が正しくありません（想定される形式：@user@instance.tld/statusId）。",
+  "errorNetwork": "Mastodonインスタンスに接続できません。",
+  "errorNotFound": "元のトゥートが見つかりません（削除済みまたは非公開です）。",
+  "errorInstanceUnreachable": "{instance} に接続できませんでした。スペルが正しいか、サーバーが現在オンラインかをご確認ください。",
+  "errorInstanceUnsupported": "{instance} はサポートされているFediverseのマイクロブログサーバーではないか、このサイトからのcross-originリクエストをブロックしています。",
+  "viewOriginal": "元の投稿を表示",
+  "replyAction": "返信",
+  "instanceModalTitle": "ご利用のFediverseインスタンスはどれですか？",
+  "instanceModalDescription": "ご利用のインスタンスのドメインを入力してください（例：mastodon.social）。完了のため、ご利用のインスタンスにリダイレクトされます。",
+  "instanceLabel": "インスタンス",
+  "instancePlaceholder": "mastodon.social",
+  "instanceSubmit": "続行",
+  "instanceCancel": "キャンセル",
+  "instanceInvalid": "ドメインが無効です。"
+}
