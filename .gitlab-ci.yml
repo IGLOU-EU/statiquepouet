@@ -1,0 +1,238 @@
+# GitLab CI/CD for statique-pouet.
+#
+# Pipeline scope (workflow:rules):
+#   - Merge requests that are NOT Draft / WIP, AND that touch code we
+#     actually care about (src, tests, styles, build config). A docs-only
+#     or lang-only MR creates ZERO pipeline — no compute, no image pull.
+#     => In project Settings -> Merge requests, enable "Allow merge if
+#        pipeline is skipped" so empty pipelines don't block the merge.
+#   - Pushes to the default branch (post-merge safety net + Pages deploy).
+#
+# Release model: tagless. Each push to main IS a new version — CI rebuilds
+# and republishes GitLab Pages, which serves dist/ + lang/ as a CDN that
+# the Hugo integration and external consumers point at by default. No
+# semver tags, no GitLab Releases, no asset attachments: the single source
+# of truth is the latest main HEAD on Pages.
+#
+# Per-job rules then narrow execution to what changed:
+#   test:ts      -> TypeScript sources, unit + adapter tests, tsconfig
+#   test:scss    -> SCSS sources (compilation = the test)
+#   test:live    -> live federation probes, allow_failure (flaky instances
+#                   must not redden a branch)
+#   build:dist   -> produces the shipped artifact (catches esbuild / Sass
+#                   regressions tsc cannot see)
+#   size:budget  -> hard bytes ceiling on the lazy embed promise
+#   pages        -> publishes demo/ + dist/ + lang/ on the default branch
+#
+# Security scanners are pulled from official GitLab templates and inherit
+# the workflow scoping above (i.e. they also skip on docs-only MRs).
+
+include:
+  - template: Jobs/SAST.gitlab-ci.yml
+  - template: Jobs/Dependency-Scanning.gitlab-ci.yml
+
+# -----------------------------------------------------------------------------
+# Security scanner overrides. The included templates ship their own purpose-
+# built images (semgrep, gemnasium…) that do not contain npm, so the global
+# `default.before_script: npm ci` from this file would fail with
+# `npm: not found`. Per-job overrides clear the before_script and the npm
+# cache mount — the scanners do their own dependency resolution.
+# -----------------------------------------------------------------------------
+.scanner-override: &scanner-override
+  before_script: []
+  cache: {}
+
+semgrep-sast:
+  <<: *scanner-override
+
+nodejs-scan-sast:
+  <<: *scanner-override
+
+eslint-sast:
+  <<: *scanner-override
+
+gemnasium-dependency_scanning:
+  <<: *scanner-override
+
+variables:
+  # Hard ceilings for the shipped bundle, in bytes. The whole pitch of
+  # the lib is "tiny lazy embed" — silent growth defeats the point.
+  # Raise deliberately, in the same MR as the feature that needs it.
+  MAX_JS_BYTES:  "20000"
+  MAX_CSS_BYTES: "12000"
+
+stages:
+  - test
+  - build
+  - deploy
+
+default:
+  image: node:20-alpine
+  interruptible: true
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules/
+  before_script:
+    - npm ci --no-audit --no-fund --prefer-offline
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TITLE !~ /^(Draft|WIP):/i'
+      changes:
+        - src/**/*
+        - tests/**/*
+        - styles/**/*
+        - tsconfig*.json
+        - package.json
+        - package-lock.json
+        - .gitlab-ci.yml
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+# -----------------------------------------------------------------------------
+# TypeScript: strict typecheck + unit & adapter tests.
+# Live tests are deliberately excluded here — they have their own job.
+# -----------------------------------------------------------------------------
+test:ts:
+  stage: test
+  script:
+    - npm run typecheck
+    - npm run build:tests
+    - node --test build-test/tests/*.test.js build-test/tests/adapters/
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+        - src/**/*
+        - tests/*.ts
+        - tests/adapters/**/*
+        - tsconfig*.json
+        - package.json
+        - package-lock.json
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+# -----------------------------------------------------------------------------
+# SCSS: Sass compilation IS the test. It fails on syntax errors, unknown
+# variables, broken @use / @forward, missing partials.
+# -----------------------------------------------------------------------------
+test:scss:
+  stage: test
+  script:
+    - npm run build:styles
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+        - styles/**/*
+        - package.json
+        - package-lock.json
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+# -----------------------------------------------------------------------------
+# Live federation probes. Per AGENTS.md these skip gracefully when offline,
+# but a flaky remote instance must not redden a feature branch. We run them
+# and surface the result, but allow_failure keeps the pipeline green.
+# -----------------------------------------------------------------------------
+test:live:
+  stage: test
+  script:
+    - npm run build:tests
+    - node --test build-test/tests/live/
+  allow_failure: true
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+        - src/**/*
+        - tests/live/**/*
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+# -----------------------------------------------------------------------------
+# Production bundle. Catches regressions tsc cannot see: circular imports,
+# unresolvable ESM specifiers, broken Sass @use chains. The artifact is
+# reused by size:budget, pages and release through `needs:`.
+# -----------------------------------------------------------------------------
+build:dist:
+  stage: build
+  script:
+    - npm run build
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 week
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+        - src/**/*
+        - styles/**/*
+        - tsconfig*.json
+        - package.json
+        - package-lock.json
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+# -----------------------------------------------------------------------------
+# Bundle size budget. Pure shell, no npm install: reuses the already-pulled
+# node:20-alpine image and skips before_script / cache mount.
+# -----------------------------------------------------------------------------
+size:budget:
+  stage: build
+  before_script: []
+  cache: {}
+  needs:
+    - job: build:dist
+      artifacts: true
+  script:
+    - |
+      check() {
+        file="$1"; budget="$2"
+        size=$(wc -c < "$file")
+        printf '%-44s %7s bytes (budget %s)\n' "$file" "$size" "$budget"
+        if [ "$size" -gt "$budget" ]; then
+          echo "  over budget by $((size - budget)) bytes" >&2
+          return 1
+        fi
+      }
+      fail=0
+      check dist/comments.min.js               "$MAX_JS_BYTES"  || fail=1
+      check dist/statique-pouet-light.min.css  "$MAX_CSS_BYTES" || fail=1
+      check dist/statique-pouet-dark.min.css   "$MAX_CSS_BYTES" || fail=1
+      exit "$fail"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+        - src/**/*
+        - styles/**/*
+        - tsconfig*.json
+        - package.json
+        - package-lock.json
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+# -----------------------------------------------------------------------------
+# GitLab Pages: publishes demo/ + dist/ + lang/ on the default branch.
+# Each main push republishes; the Pages URL is the canonical CDN that
+# external consumers (including the Hugo integration's default basePath)
+# point at. demo/ stays online too, accessed via the root redirect.
+# -----------------------------------------------------------------------------
+pages:
+  stage: deploy
+  before_script: []
+  cache: {}
+  needs:
+    - job: build:dist
+      artifacts: true
+  script:
+    - rm -rf public
+    - mkdir -p public/demo public/dist public/lang
+    - cp demo/index.html demo/showcase.html public/demo/
+    - cp dist/comments.min.js dist/statique-pouet-*.min.css public/dist/
+    - cp lang/*.json public/lang/
+    - |
+      cat > public/index.html <<'EOF'
+      <!doctype html>
+      <meta http-equiv="refresh" content="0; url=demo/">
+      <title>statique-pouet</title>
+      EOF
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
