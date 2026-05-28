@@ -1,4 +1,4 @@
-# statique-pouet task runner. Thin wrapper over the npm scripts.
+# StatiquePouet task runner. Thin wrapper over the npm scripts.
 # Indentation MUST be tabs.
 
 .DEFAULT_GOAL := help

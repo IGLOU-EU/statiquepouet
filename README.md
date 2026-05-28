@@ -1,4 +1,4 @@
-# statique-pouet
+# StatiquePouet
 
 Comment system for static sites, built on the conventions of the
 **fediverse** ecosystem (Mastodon and related software).
@@ -28,13 +28,13 @@ It looks like `https://your-instance.example/@you/123456789012345678`.
 
 ### 2. Put the project files on your website
 
-- Grab the latest release of statique-pouet
+- Grab the latest release of StatiquePouet
   (or clone the repo and run `npm install && npm run build` if you're
   comfortable with that).
 - Copy the `dist/` folder and the `lang/` folder onto your website,
-  for example under `/statique-pouet/`. After that you should have at
-  least `/statique-pouet/dist/comments.min.js` and
-  `/statique-pouet/lang/en.json` reachable from the web.
+  for example under `/statiquepouet/`. After that you should have at
+  least `/statiquepouet/dist/comments.min.js` and
+  `/statiquepouet/lang/en.json` reachable from the web.
 
 ### 3. Add the snippet to your article
 
@@ -54,7 +54,7 @@ the URL on the first line with the one you copied at step 1.
 <script>
   window.STATIQUE_POUET_CONFIG = {
     commentsContainerId: 'comments-content',
-    basePath: '/statique-pouet/',
+    basePath: '/statiquepouet/',
   };
   window.statiquePouet = function (action) {
     return (window._sp ||= import(STATIQUE_POUET_CONFIG.basePath + 'dist/comments.min.js'))
@@ -97,7 +97,7 @@ software:
 | **Post** a reply / share | `GET /.well-known/webfinger` ([RFC 7033](https://www.rfc-editor.org/rfc/rfc7033)) + [FEP-3b86](https://w3id.org/fep/3b86) intent templates, with legacy OStatus + Mastodon `/authorize_interaction` fallbacks. For software that doesn't expose an instance-actor webfinger (Misskey-family), `GET /.well-known/nodeinfo` identifies the server by `software.name` and dispatches to a dedicated adapter | Near-universal across microblogging servers |
 
 If the instance hosting the anchor post exposes the first endpoint,
-statique-pouet can read its replies. For writing, the
+StatiquePouet can read its replies. For writing, the
 **[adapter layer](#architecture-adapter-layers)** automatically routes
 to the right URL convention depending on the software detected on the
 user's side. When no signal lands the user on a supported microblog
@@ -152,7 +152,7 @@ Copy-paste into any static page:
   window.STATIQUE_POUET_CONFIG = {
     commentsContainerId: 'comments-content',
     lang: 'en',
-    basePath: '/statique-pouet/',
+    basePath: '/statiquepouet/',
   };
   window.statiquePouet = function (action) {
     return (window._sp ||= import(STATIQUE_POUET_CONFIG.basePath + 'dist/comments.min.js'))
@@ -397,7 +397,7 @@ Mastodon API capability probe before falling back to the default adapter.
 Having a fediverse account isn't always enough to reply to a microblog
 post. **PeerTube** (video platform), **Lemmy** (forum), **BookWyrm**
 (books), **Mobilizon** (events) don't have a UI dedicated to microblog
-reply composition. Their content model is different. statique-pouet
+reply composition. Their content model is different. StatiquePouet
 cannot work around that. The user must use an account on microblog
 software (Mastodon, Pleroma, Akkoma, Misskey…) to comment.
 

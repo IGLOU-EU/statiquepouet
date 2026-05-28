@@ -1,4 +1,4 @@
-# GitLab CI/CD for statique-pouet.
+# GitLab CI/CD for StatiquePouet.
 #
 # Pipeline scope (workflow:rules):
 #   - Merge requests that are NOT Draft / WIP, AND that touch code we
@@ -229,7 +229,7 @@ pages:
       cat > public/index.html <<'EOF'
       <!doctype html>
       <meta http-equiv="refresh" content="0; url=demo/">
-      <title>statique-pouet</title>
+      <title>StatiquePouet</title>
       EOF
   artifacts:
     paths:

@@ -1,4 +1,4 @@
-# Contributing to statique-pouet
+# Contributing to StatiquePouet
 
 Thanks for the interest in the project. The codebase stays small on
 purpose — around 14 KB minified for the shipped library — and the
@@ -44,7 +44,7 @@ well tested. This document describes how to contribute.
 
 ```bash
 git clone <repo>
-cd statique-pouet
+cd statiquepouet
 npm install          # esbuild + typescript + @types/node only
 npm run typecheck    # tsc --noEmit
 npm test             # compiles TS tests then runs node --test
@@ -84,7 +84,7 @@ by reading the corresponding spec.
 - [FEP-3b86 — Activity Intents](https://w3id.org/fep/3b86) — fediverse
   enhancement proposal for publishing intent URL templates (reply,
   share, follow, etc.) via webfinger. The main mechanism used by
-  `statique-pouet` for writing.
+  StatiquePouet for writing.
 - [Nodeinfo](https://nodeinfo.diaspora.software/) — fediverse-wide
   software self-identification (`software.name`). Used as the
   secondary dispatch signal when webfinger-based adapter detection is
@@ -145,6 +145,26 @@ by reading the corresponding spec.
   `UPPER_SNAKE_CASE`.
 - One responsibility per file. If a module passes 250 lines, consider
   a split.
+
+### Project name spelling
+
+The project is named **StatiquePouet**. Its written form follows the
+standard casing transform of the host context rather than a single
+fixed spelling.
+
+| Context                                         | Form              |
+|-------------------------------------------------|-------------------|
+| Prose, headings, brand mentions                 | `StatiquePouet`   |
+| TypeScript class or type                        | `StatiquePouet`   |
+| JS / TS function or variable                    | `statiquePouet`   |
+| CSS class or id prefix, npm package, kebab file | `statique-pouet`  |
+| Directory name, flat slug                       | `statiquepouet`   |
+
+Do not invent intermediate forms (`Statique-pouet`,
+`STATIQUE_POUET` outside of a constant, etc.). When adding a new CSS
+class, keep the `statique-pouet-*` prefix used in
+[`src/classes.ts`](src/classes.ts). When exposing a JS global on
+`window`, mirror the existing `window.statiquePouet(action)` pattern.
 
 ### Tests
 
