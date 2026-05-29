@@ -38,30 +38,10 @@ It looks like `https://your-instance.example/@you/123456789012345678`.
 
 ### 3. Add the snippet to your article
 
-In the HTML of the page where you want comments, paste this and replace
-the URL on the first line with the one you copied at step 1.
-
-```html
-<meta name="fediverse-context"
-      content="https://your-instance.example/@you/123456789012345678">
-
-<button type="button" onclick="statiquePouet('loadComments')">Load comments</button>
-<button type="button" onclick="statiquePouet('postComment')">Reply</button>
-<button type="button" onclick="statiquePouet('shareArticle')">Share</button>
-
-<div id="comments-content"></div>
-
-<script>
-  window.STATIQUE_POUET_CONFIG = {
-    commentsContainerId: 'comments-content',
-    basePath: '/statiquepouet/',
-  };
-  window.statiquePouet = function (action) {
-    return (window._sp ||= import(STATIQUE_POUET_CONFIG.basePath + 'dist/comments.min.js'))
-      .then(function (m) { return m[action](); });
-  };
-</script>
-```
+In the HTML of the page where you want comments, paste the integration
+snippet shown under [Minimal integration](#minimal-integration) below,
+then replace the `fediverse-context` URL with the one you copied at
+step 1.
 
 That's it. When a reader clicks **Load comments**, they see all the
 replies to your original post on the fediverse. When they click
@@ -161,15 +141,14 @@ Copy-paste into any static page:
 </script>
 ```
 
-That's it. No JavaScript is downloaded before the user clicks one of
-the buttons.
+That's it.
 
 ## Available actions
 
 | Action | Effect |
 |--------|--------|
 | `statiquePouet('loadComments')` | Reads the `fediverse-context` meta tag, queries `/api/v1/statuses/:id/context` on the source instance, and renders the reply tree into `commentsContainerId`. |
-| `statiquePouet('postComment')` | Opens the instance modal (pre-filled and editable, with live autocomplete via `/api/v1/peers/search`). Resolution goes through the [layered dispatcher](#architecture-adapter-layers): webfinger [FEP-3b86](https://w3id.org/fep/3b86) `Object` template → legacy OStatus `subscribe` → Misskey-family detection via nodeinfo → Mastodon API capability probe with `/authorize_interaction?uri=…` fallback. If none match, the modal stays open and surfaces an inline error so the user can retype. Otherwise opens the result in a new tab. The post created is a **real ActivityPub reply** that appears in the thread on next reload. |
+| `statiquePouet('postComment')` | Opens the instance modal (pre-filled and editable, with live autocomplete via `/api/v1/peers/search`). Resolution goes through the [layered dispatcher](#architecture-adapter-layers). If no signal lands on a supported server, the modal stays open and surfaces an inline error so the user can retype, otherwise it opens the result in a new tab. The post created is a **real ActivityPub reply** that appears in the thread on next reload. |
 | `statiquePouet('shareArticle')` | **Same modal and dispatch** as `postComment`, but resolving the FEP-3b86 `Create` template (compose intent) with `/share?text=…` fallback (or `/share?text=…` directly on Misskey-family). Pre-fills the compose form with a mention of the anchor post's author (`@user@instance` when extractable from the URL) plus the page's canonical URL. Creates a **standalone toot**, not a reply, useful for relaying the article on one's own feed. |
 | `statiquePouet('clearInstance')` | Forgets the instance stored in this browser (useful to offer an optional "Change instance" button). |
 
